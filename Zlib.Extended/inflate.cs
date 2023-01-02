@@ -6,13 +6,15 @@
 
 using System;
 using System.Linq;
+using static Zlib.Extended.Inftrees;
+using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Inflate
 	{
 		// Possible inflate modes between inflate() calls
-		enum inflate_mode
+		public enum inflate_mode
 		{
 			HEAD,		// i: waiting for magic header
 			FLAGS,		// i: waiting for method and flags (gzip)
@@ -72,7 +74,7 @@ namespace Zlib.Extended
 		//    CHECK -> LENGTH -> DONE
 
 		// state maintained between inflate() calls. Approximately 10K bytes.
-		class inflate_state
+		public class inflate_state
 		{
 			public inflate_mode mode;	// current inflate mode
 			public int last;			// true if processing last block
@@ -350,7 +352,7 @@ namespace Zlib.Extended
                 uint bits = 9;
                 var tableIndexA = 0;
                 inflate_table(codetype.LENS, state.lens, 0, 288, next, ref tableIndexA, ref bits, state.work);
-                lenfix = next.Take(512).ToArray();
+				Inffixed.lenfix = next.Take(512).ToArray();
 
                 sym = 0;
                 while (sym < 32) state.lens[sym++] = 5;
@@ -358,12 +360,12 @@ namespace Zlib.Extended
                 bits = 5;
                 var tableIndexB = 0;
                 inflate_table(codetype.DISTS, state.lens, 0, 32, next, ref tableIndexB, ref bits, state.work);
-                distfix = next.Take(32).ToArray();
+				Inffixed.distfix = next.Take(32).ToArray();
             }
 
-			state.lencode=lenfix;
+			state.lencode= Inffixed.lenfix;
 			state.lenbits=9;
-			state.distcode=distfix;
+			state.distcode= Inffixed.distfix;
 			state.distcode_ind=0;
 			state.distbits=5;
 		}
@@ -747,12 +749,12 @@ namespace Zlib.Extended
 
 						if((state.wrap&2)!=0&&hold==0x8b1f)
 						{  // gzip header
-							state.check=crc32(0, null, 0);
+							state.check= Crc32.crc32(0, null, 0);
 
 							//was CRC2(state.check, hold);
 							hbuf[0]=(byte)hold;
 							hbuf[1]=(byte)(hold>>8);
-							state.check=crc32(state.check, hbuf, 2);
+							state.check= Crc32.crc32(state.check, hbuf, 2);
 
 							//was INITBITS();
 							hold=bits=0;
@@ -803,7 +805,7 @@ namespace Zlib.Extended
 						state.dmax=1U<<(int)len;
 						//Tracev((stderr, "inflate:   zlib header ok\n"));
 
-						strm.adler=state.check=adler32(0, null, 0);
+						strm.adler=state.check= Adler32.adler32(0, null, 0);
 						state.mode=(hold&0x200)!=0?inflate_mode.DICTID:inflate_mode.TYPE;
 
 						//was INITBITS();
@@ -840,7 +842,7 @@ namespace Zlib.Extended
 							//was CRC2(state.check, hold);
 							hbuf[0]=(byte)hold;
 							hbuf[1]=(byte)(hold>>8);
-							state.check=crc32(state.check, hbuf, 2);
+							state.check= Crc32.crc32(state.check, hbuf, 2);
 						}
 
 						//was INITBITS();
@@ -867,7 +869,7 @@ namespace Zlib.Extended
 							hbuf[1]=(byte)(hold>>8);
 							hbuf[2]=(byte)(hold>>16);
 							hbuf[3]=(byte)(hold>>24);
-							state.check=crc32(state.check, hbuf, 4);
+							state.check= Crc32.crc32(state.check, hbuf, 4);
 						}
 
 						//was INITBITS();
@@ -896,7 +898,7 @@ namespace Zlib.Extended
 							//was CRC2(state.check, hold);
 							hbuf[0]=(byte)hold;
 							hbuf[1]=(byte)(hold>>8);
-							state.check=crc32(state.check, hbuf, 2);
+							state.check= Crc32.crc32(state.check, hbuf, 2);
 						}
 
 						//was INITBITS();
@@ -924,7 +926,7 @@ namespace Zlib.Extended
 								//was CRC2(state.check, hold);
 								hbuf[0]=(byte)hold;
 								hbuf[1]=(byte)(hold>>8);
-								state.check=crc32(state.check, hbuf, 2);
+								state.check= Crc32.crc32(state.check, hbuf, 2);
 							}
 
 							//was INITBITS();
@@ -947,7 +949,7 @@ namespace Zlib.Extended
 									//was zmemcpy(state.head.extra+len, next, (len+copy>state.head.extra_max)?state.head.extra_max-len:copy);
 									Array.Copy(in_buf, next, state.head.extra, len, (len+copy>state.head.extra_max)?state.head.extra_max-len:copy);
 								}
-								if((state.flags&0x0200)!=0) state.check=crc32(state.check, in_buf, (uint)next, copy);
+								if((state.flags&0x0200)!=0) state.check= Crc32.crc32(state.check, in_buf, (uint)next, copy);
 								have-=copy;
 								next+=copy;
 								state.length-=copy;
@@ -970,7 +972,7 @@ namespace Zlib.Extended
 									state.head.name[state.length++]=(byte)len;
 							} while(len!=0&&copy<have);
 
-							if((state.flags&0x0200)!=0) state.check=crc32(state.check, in_buf, (uint)next, copy);
+							if((state.flags&0x0200)!=0) state.check= Crc32.crc32(state.check, in_buf, (uint)next, copy);
 							have-=copy;
 							next+=copy;
 							if(len!=0) goto inf_leave;
@@ -991,7 +993,7 @@ namespace Zlib.Extended
 								if(state.head!=null&&state.head.comment!=null&&state.length<state.head.comm_max)
 									state.head.comment[state.length++]=(byte)len;
 							} while(len!=0&&copy<have);
-							if((state.flags&0x0200)!=0) state.check=crc32(state.check, in_buf, (uint)next, copy);
+							if((state.flags&0x0200)!=0) state.check= Crc32.crc32(state.check, in_buf, (uint)next, copy);
 							have-=copy;
 							next+=copy;
 							if(len!=0) goto inf_leave;
@@ -1027,7 +1029,7 @@ namespace Zlib.Extended
 							state.head.hcrc=(int)((state.flags>>9)&1);
 							state.head.done=1;
 						}
-						strm.adler=state.check=crc32(0, null, 0);
+						strm.adler=state.check= Crc32.crc32(0, null, 0);
 						state.mode=inflate_mode.TYPE;
 						break;
 					case inflate_mode.DICTID:
@@ -1062,7 +1064,7 @@ namespace Zlib.Extended
 
 							return Z_NEED_DICT;
 						}
-						strm.adler=state.check=adler32(0, null, 0);
+						strm.adler=state.check= Adler32.adler32(0, null, 0);
 						state.mode=inflate_mode.TYPE;
 						break; // no fall through
 					case inflate_mode.TYPE:
@@ -1461,7 +1463,7 @@ namespace Zlib.Extended
 							state.hold=hold;
 							state.bits=bits;
 
-							inflate_fast(strm, _out);
+							Inffast.inflate_fast(strm, _out);
 
 							//was LOAD();
 							put=strm.next_out;
@@ -1724,7 +1726,7 @@ namespace Zlib.Extended
 							_out-=left;
 							strm.total_out+=_out;
 							state.total+=_out;
-							if(out_buf!=null) strm.adler=state.check=(state.flags!=0?crc32(state.check, out_buf, (uint)(put-_out), _out):adler32(state.check, out_buf, (uint)(put-_out), _out));
+							if(out_buf!=null) strm.adler=state.check=(state.flags!=0? Crc32.crc32(state.check, out_buf, (uint)(put-_out), _out): Adler32.adler32(state.check, out_buf, (uint)(put-_out), _out));
 
 							_out=left;
 							//was if((state.flags ? hold :REVERSE(hold))!=state.check)
@@ -1808,7 +1810,7 @@ inf_leave:
 			strm.total_in+=_in;
 			strm.total_out+=_out;
 			state.total+=_out;
-			if(state.wrap!=0&&_out!=0) strm.adler=state.check=(state.flags!=0?crc32(state.check, out_buf, (uint)(strm.next_out-_out), _out):adler32(state.check, out_buf, (uint)(strm.next_out-_out), _out));
+			if(state.wrap!=0&&_out!=0) strm.adler=state.check=(state.flags!=0? Crc32.crc32(state.check, out_buf, (uint)(strm.next_out-_out), _out): Adler32.adler32(state.check, out_buf, (uint)(strm.next_out-_out), _out));
 
 			//??? strm.data_type=state.bits+(state.last!=0?64:0)+(state.mode==inflate_mode.TYPE?128:0);
 
@@ -1862,8 +1864,8 @@ inf_leave:
 			// check for correct dictionary id
 			if(state.mode==inflate_mode.DICT)
 			{
-				uint id=adler32(0, null, 0);
-				id=adler32(id, dictionary, dictLength);
+				uint id= Adler32.adler32(0, null, 0);
+				id= Adler32.adler32(id, dictionary, dictLength);
 				if(id!=state.check) return Z_DATA_ERROR;
 			}
 

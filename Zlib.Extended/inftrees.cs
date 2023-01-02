@@ -8,7 +8,7 @@ using System;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Inftrees
 	{
 		// Structure for decoding tables.  Each entry provides either the
 		// information needed to do the operation requested by the code that
@@ -23,7 +23,7 @@ namespace Zlib.Extended
 		// of the bit buffer.  val is the actual byte to output in the case
 		// of a literal, the base length or distance, or the offset from
 		// the current table to the next table. Each entry is four bytes.
-		private class code
+		public class code
 		{
 			public byte op;		// operation, extra bits, table bits
 			public byte bits;	// bits in this part of the code
@@ -60,12 +60,12 @@ namespace Zlib.Extended
 		// inflate_table() calls in inflate.c and infback.c. If the root table size is
 		// changed, then these maximum sizes would be need to be recalculated and
 		// updated.
-		private const int ENOUGH_LENS=852;
-		private const int ENOUGH_DISTS=592;
-		private const int ENOUGH=(ENOUGH_LENS+ENOUGH_DISTS);
+		public const int ENOUGH_LENS=852;
+		public const int ENOUGH_DISTS=592;
+		public const int ENOUGH=(ENOUGH_LENS+ENOUGH_DISTS);
 
 		// Type of code to build for inflate_table()
-		private enum codetype
+		public enum codetype
 		{
 			CODES,
 			LENS,
@@ -117,7 +117,7 @@ namespace Zlib.Extended
 
 		// ushort* lens -> ushort[] lens + int lens_ind
 		// code** table -> code[] table + ref int table_ind
-		private static int inflate_table(codetype type, ushort[] lens, int lens_ind, uint codes, code[] table, ref int table_ind, ref uint bits, ushort[] work)
+		public static int inflate_table(codetype type, ushort[] lens, int lens_ind, uint codes, code[] table, ref int table_ind, ref uint bits, ushort[] work)
 		{
 			uint len;				// a code's length in bits
 			uint sym;				// index of code symbols

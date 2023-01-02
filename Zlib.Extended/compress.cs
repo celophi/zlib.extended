@@ -3,11 +3,11 @@
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
 
-using System;
+using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Compress
 	{
 		//   The following utility functions are implemented on top of the
 		// basic stream-oriented functions. To simplify the interface, some
@@ -26,30 +26,31 @@ namespace Zlib.Extended
 		// memory, Z_BUF_ERROR if there was not enough room in the output buffer,
 		// Z_STREAM_ERROR if the level parameter is invalid.
 		
-		public static int compress2(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, int level)
+		public static int Compress2(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, int level)
 		{
-			z_stream stream=new z_stream();
+            z_stream stream = new()
+            {
+                next_in = 0,
+                in_buf = source,
+                avail_in = sourceLen,
+                next_out = 0,
+                out_buf = dest,
+                avail_out = destLen
+            };
+            if (stream.avail_out!=destLen) return Z_BUF_ERROR;
 
-			stream.next_in=0;
-			stream.in_buf=source;
-			stream.avail_in=sourceLen;
-			stream.next_out=0;
-			stream.out_buf=dest;
-			stream.avail_out=destLen;
-			if(stream.avail_out!=destLen) return Z_BUF_ERROR;
-
-			int err=deflateInit(stream, level);
+			int err= Deflate.deflateInit(stream, level);
 			if(err!=Z_OK) return err;
 
-			err=deflate(stream, Z_FINISH);
+			err=Deflate.deflate(stream, Z_FINISH);
 			if(err!=Z_STREAM_END)
 			{
-				deflateEnd(stream);
+				Deflate.deflateEnd(stream);
 				return err==Z_OK?Z_BUF_ERROR:err;
 			}
 			destLen=stream.total_out;
 
-			err=deflateEnd(stream);
+			err= Deflate.deflateEnd(stream);
 			return err;
 		}
 
@@ -68,7 +69,7 @@ namespace Zlib.Extended
 
 		public static int compress(byte[] dest, ref uint destLen, byte[] source, uint sourceLen)
 		{
-			return compress2(dest, ref destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
+			return Compress2(dest, ref destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 		}
 
 		// ===========================================================================
@@ -79,7 +80,7 @@ namespace Zlib.Extended
 		// compress() or compress2() on sourceLen bytes.  It would be used before
 		// a compress() or compress2() call to allocate the destination buffer.
 
-		public static uint compressBound(uint sourceLen)
+		public static uint CompressBound(uint sourceLen)
 		{
 			return sourceLen+(sourceLen>>12)+(sourceLen>>14)+(sourceLen>>25)+13;
 		}

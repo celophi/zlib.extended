@@ -3,18 +3,16 @@
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
 
-using System;
-
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Zlib
 	{
 		// Maximum value for memLevel in deflateInit2
-		private const int MAX_MEM_LEVEL=9;
+		public const int MAX_MEM_LEVEL=9;
 
 		// Maximum value for windowBits in deflateInit2 and inflateInit2.
-		private const int MAX_WBITS=15; // 32K LZ77 window
-		private const int DEF_WBITS=MAX_WBITS; // default windowBits for decompression. MAX_WBITS is for compression only
+		public const int MAX_WBITS=15; // 32K LZ77 window
+		public const int DEF_WBITS=MAX_WBITS; // default windowBits for decompression. MAX_WBITS is for compression only
 
 		// The memory requirements for deflate are (in bytes):
 		//    (1 << (windowBits+2)) +  (1 << (memLevel+9))
@@ -28,16 +26,16 @@ namespace Zlib.Extended
 		// that is, 32K for windowBits=15 (default value) plus a few kilobytes
 		// for small objects.
 
-		private const int DEF_MEM_LEVEL=8; // default memLevel
+		public const int DEF_MEM_LEVEL=8; // default memLevel
 
 		// The three kinds of block type
-		private const int STORED_BLOCK=0;
-		private const int STATIC_TREES=1;
-		private const int DYN_TREES=2;
+		public const int STORED_BLOCK=0;
+		public const int STATIC_TREES=1;
+		public const int DYN_TREES=2;
 
 		// The minimum and maximum match lengths
-		private const int MIN_MATCH=3;
-		private const int MAX_MATCH=258;
+		public const int MIN_MATCH=3;
+		public const int MAX_MATCH=258;
 
 		public const string ZLIB_VERSION="1.2.5";
 		public const uint ZLIB_VERNUM=0x1250;

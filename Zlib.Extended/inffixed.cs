@@ -5,12 +5,13 @@
 // Based on the automatically by makefixed() generated inffixed.h.
 
 using System;
+using static Zlib.Extended.Inftrees;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Inffixed
 	{
-		private static code[] lenfix=new code[512]
+		public static code[] lenfix=new code[512]
 		{
 			new code(96,7, 0), new code(0,8, 80), new code(0,8,16), new code(20,8,115),
 			new code(18,7,31), new code(0,8,112), new code(0,8,48), new code( 0,9,192),
@@ -142,7 +143,7 @@ namespace Zlib.Extended
 			new code( 0,8,15), new code(0,8,143), new code(0,8,79), new code( 0,9,255)
 		};
 
-		private static code[] distfix=new code[32]
+		public static code[] distfix=new code[32]
 		{
 	        new code(16,5, 1), new code(23,5, 257), new code(19,5, 17), new code(27,5, 4097),
 			new code(17,5, 5), new code(25,5,1025), new code(21,5, 65), new code(29,5,16385),

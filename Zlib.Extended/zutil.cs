@@ -7,9 +7,9 @@ using System;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Zutil
 	{
-		private const int OS_CODE=0x0b;
+		public const int OS_CODE=0x0b;
 
 		static readonly string[] z_errmsg=new string[9]
 		{
@@ -33,7 +33,7 @@ namespace Zlib.Extended
 
 		public static string zlibVersion()
 		{
-			return ZLIB_VERSION;
+			return Zlib.ZLIB_VERSION;
 		}
 
 		// =========================================================================

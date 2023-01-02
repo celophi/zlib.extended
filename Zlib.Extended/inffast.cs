@@ -3,11 +3,13 @@
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
 
-using System;
+using static Zlib.Extended.Inflate;
+using static Zlib.Extended.Inftrees;
+using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+    public static class Inffast
 	{
 		// Decode literal, length, and distance codes and write out the resulting
 		// literal and match bytes until either not enough input or output is
@@ -43,7 +45,7 @@ namespace Zlib.Extended
 		//    requires strm.avail_out >= 258 for each loop to avoid checking for
 		//    output space.
 
-		private static void inflate_fast(z_stream strm, uint start) // inflate()'s starting value for strm.avail_out
+		public static void inflate_fast(z_stream strm, uint start) // inflate()'s starting value for strm.avail_out
 		{
 			inflate_state state=null;
 			byte[] _in;				// local strm.next_in

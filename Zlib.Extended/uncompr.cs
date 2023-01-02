@@ -4,10 +4,11 @@
 // For conditions of distribution and use, see copyright notice in License.txt
 
 using System;
+using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Uncompr
 	{
 		//   The following utility functions are implemented on top of the
 		// basic stream-oriented functions. To simplify the interface, some
@@ -43,19 +44,19 @@ namespace Zlib.Extended
 			stream.avail_out=destLen;
 			if(stream.avail_out!=destLen) return Z_BUF_ERROR;
 
-			int err=inflateInit(stream);
+			int err=Inflate.inflateInit(stream);
 			if(err!=Z_OK) return err;
 
-			err=inflate(stream, Z_FINISH);
+			err= Inflate.inflate(stream, Z_FINISH);
 			if(err!=Z_STREAM_END)
 			{
-				inflateEnd(stream);
+				Inflate.inflateEnd(stream);
 				if(err==Z_NEED_DICT||(err==Z_BUF_ERROR&&stream.avail_in==0)) return Z_DATA_ERROR;
 				return err;
 			}
 			destLen=stream.total_out;
 
-			err=inflateEnd(stream);
+			err= Inflate.inflateEnd(stream);
 			return err;
 		}
 	}

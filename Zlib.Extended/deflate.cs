@@ -47,47 +47,48 @@
 #endregion
 
 using System;
+using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Deflate
 	{
 		#region deflate.h
 		// ===========================================================================
 		// Internal compression state.
 
 		// number of length codes, not counting the special END_BLOCK code
-		private const int LENGTH_CODES=29;
+		public const int LENGTH_CODES=29;
 
 		// number of literal bytes 0..255
-		private const int LITERALS=256;
+		public const int LITERALS=256;
 
 		// number of Literal or Length codes, including the END_BLOCK code
-		private const int L_CODES=LITERALS+1+LENGTH_CODES;
+		public const int L_CODES=LITERALS+1+LENGTH_CODES;
 
 		// number of distance codes
-		private const int D_CODES=30;
+		public const int D_CODES=30;
 
 		// number of codes used to transfer the bit lengths
-		private const int BL_CODES=19;
+		public const int BL_CODES=19;
 
 		// maximum heap size
-		private const int HEAP_SIZE=2*L_CODES+1;
+		public const int HEAP_SIZE=2*L_CODES+1;
 
 		// All codes must not exceed MAX_BITS bits
-		private const int MAX_BITS=15;
+		public const int MAX_BITS=15;
 
 		// Stream status
-		private const int INIT_STATE=42;
-		private const int EXTRA_STATE=69;
-		private const int NAME_STATE=73;
-		private const int COMMENT_STATE=91;
-		private const int HCRC_STATE=103;
-		private const int BUSY_STATE=113;
-		private const int FINISH_STATE=666;
+		public const int INIT_STATE=42;
+		public const int EXTRA_STATE=69;
+		public const int NAME_STATE=73;
+		public const int COMMENT_STATE=91;
+		public const int HCRC_STATE=103;
+		public const int BUSY_STATE=113;
+		public const int FINISH_STATE=666;
 
 		// Data structure describing a single value and its code string.
-		struct ct_data
+		public struct ct_data
 		{
 			ushort freq;
 			public ushort Freq { get { return freq; } set { freq=value; } } // frequency count
@@ -110,11 +111,11 @@ namespace Zlib.Extended
 			}
 		}
 
-		struct tree_desc
+		public struct tree_desc
 		{
 			public ct_data[] dyn_tree;			// the dynamic tree
 			public int max_code;				// largest code with non zero frequency
-			public static_tree_desc stat_desc;	// the corresponding static tree
+			public Trees.static_tree_desc stat_desc;	// the corresponding static tree
 
 			public tree_desc(tree_desc desc)
 			{
@@ -124,7 +125,7 @@ namespace Zlib.Extended
 			}
 		}
 
-		class deflate_state //internal_state 
+		public class deflate_state //internal_state 
 		{
 			public z_stream strm;			// pointer back to this zlib stream
 			public int status;				// as the name implies
@@ -311,7 +312,7 @@ namespace Zlib.Extended
 
 		// Minimum amount of lookahead, except at the end of the input file.
 		// See deflate.c for comments about the MIN_MATCH+1.
-		private const int MIN_LOOKAHEAD=MAX_MATCH+MIN_MATCH+1;
+		public const int MIN_LOOKAHEAD=MAX_MATCH+MIN_MATCH+1;
 
 		// In order to simplify the code, particularly on 16 bit machines, match
 		// distances are limited to MAX_DIST instead of WSIZE.
@@ -319,7 +320,7 @@ namespace Zlib.Extended
 
 		// Number of bytes after end of data in window to initialize in order to avoid
 		// memory checker errors from longest match routines
-		private const int WIN_INIT=MAX_MATCH;
+		public const int WIN_INIT=MAX_MATCH;
 
 		// Mapping from a distance to a distance code. dist is the distance - 1 and
 		// must not have side effects. _dist_code[256] and _dist_code[257] are never
@@ -332,7 +333,7 @@ namespace Zlib.Extended
 		// in the documentation of your product. If for some reason you cannot
 		// include such an acknowledgment, I would appreciate that you keep this
 		// copyright string in the executable of your product.
-		private const string deflate_copyright=" deflate 1.2.5 Copyright 1995-2010 Jean-loup Gailly ";
+		public const string deflate_copyright=" deflate 1.2.5 Copyright 1995-2010 Jean-loup Gailly ";
 
 		// ===========================================================================
 		// Function prototypes.
@@ -563,7 +564,7 @@ namespace Zlib.Extended
 			catch(Exception)
 			{
 				s.status=FINISH_STATE;
-				strm.msg=zError(Z_MEM_ERROR);
+				strm.msg=Zutil.zError(Z_MEM_ERROR);
 				deflateEnd(strm);
 				return Z_MEM_ERROR;
 			}
@@ -622,7 +623,7 @@ namespace Zlib.Extended
 			if(s==null||s.wrap==2||(s.wrap==1&&s.status!=INIT_STATE))
 				return Z_STREAM_ERROR;
 
-			if(s.wrap!=0) strm.adler=adler32(strm.adler, dictionary, dictLength);
+			if(s.wrap!=0) strm.adler= Adler32.adler32(strm.adler, dictionary, dictLength);
 
 			if(length<MIN_MATCH) return Z_OK;
 
@@ -680,10 +681,10 @@ namespace Zlib.Extended
 			if(s.wrap<0) s.wrap=-s.wrap; // was made negative by deflate(..., Z_FINISH);
 
 			s.status=s.wrap!=0?INIT_STATE:BUSY_STATE;
-			strm.adler=s.wrap==2?crc32(0, null, 0):adler32(0, null, 0);
+			strm.adler=s.wrap==2? Crc32.crc32(0, null, 0): Adler32.adler32(0, null, 0);
 			s.last_flush=Z_NO_FLUSH;
 
-			_tr_init(s);
+			Trees._tr_init(s);
 			lm_init(s);
 
 			return Z_OK;
@@ -1009,13 +1010,13 @@ namespace Zlib.Extended
 
 			if(strm.out_buf==null||(strm.in_buf==null&&strm.avail_in!=0)||(s.status==FINISH_STATE&&flush!=Z_FINISH))
 			{
-				strm.msg=zError(Z_STREAM_ERROR);
+				strm.msg= Zutil.zError(Z_STREAM_ERROR);
 				return Z_STREAM_ERROR;
 			}
 
 			if(strm.avail_out==0)
 			{
-				strm.msg=zError(Z_BUF_ERROR);
+				strm.msg= Zutil.zError(Z_BUF_ERROR);
 				return Z_BUF_ERROR;
 			}
 
@@ -1028,7 +1029,7 @@ namespace Zlib.Extended
 			{
 				if(s.wrap==2)
 				{
-					strm.adler=crc32(0, null, 0);
+					strm.adler= Crc32.crc32(0, null, 0);
 					s.pending_buf[s.pending++]=31;
 					s.pending_buf[s.pending++]=139;
 					s.pending_buf[s.pending++]=8;
@@ -1042,7 +1043,7 @@ namespace Zlib.Extended
 						s.pending_buf[s.pending++]=0;
 
 						s.pending_buf[s.pending++]=(byte)(s.level==9?2:(s.strategy>=Z_HUFFMAN_ONLY||s.level<2?4:0));
-						s.pending_buf[s.pending++]=OS_CODE;
+						s.pending_buf[s.pending++]= Zutil.OS_CODE;
 						s.status=BUSY_STATE;
 					}
 					else
@@ -1060,7 +1061,7 @@ namespace Zlib.Extended
 							s.pending_buf[s.pending++]=(byte)(s.gzhead.extra_len&0xff);
 							s.pending_buf[s.pending++]=(byte)((s.gzhead.extra_len>>8)&0xff);
 						}
-						if(s.gzhead.hcrc!=0) strm.adler=crc32(strm.adler, s.pending_buf, s.pending);
+						if(s.gzhead.hcrc!=0) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, s.pending);
 						s.gzindex=0;
 						s.status=EXTRA_STATE;
 					}
@@ -1088,7 +1089,7 @@ namespace Zlib.Extended
 						putShortMSB(s, (uint)(strm.adler>>16));
 						putShortMSB(s, (uint)(strm.adler&0xffff));
 					}
-					strm.adler=adler32(0, null, 0);
+					strm.adler= Adler32.adler32(0, null, 0);
 				}
 			}
 			if(s.status==EXTRA_STATE)
@@ -1101,7 +1102,7 @@ namespace Zlib.Extended
 					{
 						if(s.pending==s.pending_buf_size)
 						{
-							if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler=crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
+							if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
 							flush_pending(strm);
 							beg=s.pending;
 							if(s.pending==s.pending_buf_size) break;
@@ -1109,7 +1110,7 @@ namespace Zlib.Extended
 						s.pending_buf[s.pending++]=s.gzhead.extra[s.gzindex];
 						s.gzindex++;
 					}
-					if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler=crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
+					if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
 					if(s.gzindex==s.gzhead.extra_len)
 					{
 						s.gzindex=0;
@@ -1129,7 +1130,7 @@ namespace Zlib.Extended
 					{
 						if(s.pending==s.pending_buf_size)
 						{
-							if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler=crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
+							if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
 							flush_pending(strm);
 							beg=s.pending;
 							if(s.pending==s.pending_buf_size)
@@ -1141,7 +1142,7 @@ namespace Zlib.Extended
 						val=s.gzhead.name[s.gzindex++];
 						s.pending_buf[s.pending++]=val;
 					} while(val!=0);
-					if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler=crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
+					if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
 					if(val==0)
 					{
 						s.gzindex=0;
@@ -1161,7 +1162,7 @@ namespace Zlib.Extended
 					{
 						if(s.pending==s.pending_buf_size)
 						{
-							if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler=crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
+							if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
 							flush_pending(strm);
 							beg=s.pending;
 							if(s.pending==s.pending_buf_size)
@@ -1173,7 +1174,7 @@ namespace Zlib.Extended
 						val=s.gzhead.comment[s.gzindex++];
 						s.pending_buf[s.pending++]=val;
 					} while(val!=0);
-					if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler=crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
+					if(s.gzhead.hcrc!=0&&s.pending>beg) strm.adler= Crc32.crc32(strm.adler, s.pending_buf, beg, s.pending-beg);
 					if(val==0) s.status=HCRC_STATE;
 				}
 				else s.status=HCRC_STATE;
@@ -1187,7 +1188,7 @@ namespace Zlib.Extended
 					{
 						s.pending_buf[s.pending++]=(byte)(strm.adler&0xff);
 						s.pending_buf[s.pending++]=(byte)((strm.adler>>8)&0xff);
-						strm.adler=crc32(0, null, 0);
+						strm.adler= Crc32.crc32(0, null, 0);
 						s.status=BUSY_STATE;
 					}
 				}
@@ -1215,14 +1216,14 @@ namespace Zlib.Extended
 			}
 			else if(strm.avail_in==0&&flush<=old_flush&&flush!=Z_FINISH)
 			{
-				strm.msg=zError(Z_BUF_ERROR);
+				strm.msg= Zutil.zError(Z_BUF_ERROR);
 				return Z_BUF_ERROR;
 			}
 
 			// User must not provide more input after the first FINISH:
 			if(s.status==FINISH_STATE&&strm.avail_in!=0)
 			{
-				strm.msg=zError(Z_BUF_ERROR);
+				strm.msg= Zutil.zError(Z_BUF_ERROR);
 				return Z_BUF_ERROR;
 			}
 
@@ -1245,10 +1246,10 @@ namespace Zlib.Extended
 				}
 				if(bstate==block_state.block_done)
 				{
-					if(flush==Z_PARTIAL_FLUSH) _tr_align(s);
+					if(flush==Z_PARTIAL_FLUSH) Trees._tr_align(s);
 					else if(flush!=Z_BLOCK)
 					{ // FULL_FLUSH or SYNC_FLUSH
-						_tr_stored_block(s, null, 0, 0);
+						Trees._tr_stored_block(s, null, 0, 0);
 						// For a full flush, this empty block will be recognized
 						// as a special marker by inflate_sync().
 						if(flush==Z_FULL_FLUSH)
@@ -1436,8 +1437,8 @@ namespace Zlib.Extended
 
 			deflate_state s=(deflate_state)strm.state;
 
-			if(s.wrap==1) strm.adler=adler32(strm.adler, strm.in_buf, (uint)strm.next_in, len);
-			else if(s.wrap==2) strm.adler=crc32(strm.adler, strm.in_buf, strm.next_in, len);
+			if(s.wrap==1) strm.adler= Adler32.adler32(strm.adler, strm.in_buf, (uint)strm.next_in, len);
+			else if(s.wrap==2) strm.adler= Crc32.crc32(strm.adler, strm.in_buf, strm.next_in, len);
 
 			//was memcpy(buf, strm.in_buf+strm.next_in, len);
 			Array.Copy(strm.in_buf, strm.next_in, buf, buf_ind, len);
@@ -1801,7 +1802,7 @@ namespace Zlib.Extended
 					s.strstart=(uint)max_start;
 
 					//was FLUSH_BLOCK(s, 0);
-					_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+					Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 						(uint)((int)s.strstart-s.block_start), 0);
 					s.block_start=(int)s.strstart;
 					flush_pending(s.strm);
@@ -1813,7 +1814,7 @@ namespace Zlib.Extended
 				if(s.strstart-(uint)s.block_start>=(s.w_size-MIN_LOOKAHEAD))
 				{
 					//was FLUSH_BLOCK(s, 0);
-					_tr_flush_block(s, s.block_start >= 0 ? s.window : null, s.block_start >= 0?s.block_start:0,
+					Trees._tr_flush_block(s, s.block_start >= 0 ? s.window : null, s.block_start >= 0?s.block_start:0,
 						(uint)((int)s.strstart - s.block_start), 0);
 					s.block_start = (int)s.strstart;
 					flush_pending(s.strm);
@@ -1821,9 +1822,9 @@ namespace Zlib.Extended
 					if (s.strm.avail_out == 0) return block_state.need_more;
 				}
 			}
-			
+
 			//was FLUSH_BLOCK(s, flush==Z_FINISH);
-			_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+			Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 				(uint)((int)s.strstart-s.block_start), flush==Z_FINISH?1:0);
 			s.block_start=(int)s.strstart;
 			flush_pending(s.strm);
@@ -1887,8 +1888,8 @@ namespace Zlib.Extended
 						s.d_buf[s.last_lit]=dist;
 						s.l_buf[s.last_lit++]=len;
 						dist--;
-						s.dyn_ltree[_length_code[len]+LITERALS+1].Freq++;
-						s.dyn_dtree[(dist<256?_dist_code[dist]:_dist_code[256+(dist>>7)])].Freq++;
+						s.dyn_ltree[Trees._length_code[len]+LITERALS+1].Freq++;
+						s.dyn_dtree[(dist<256? Trees._dist_code[dist]: Trees._dist_code[256+(dist>>7)])].Freq++;
 						bflush=(s.last_lit==s.lit_bufsize-1)?1:0;
 					}
 
@@ -1945,7 +1946,7 @@ namespace Zlib.Extended
 				if(bflush!=0)
 				{
 					//was FLUSH_BLOCK(s, 0);
-					_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+					Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 						(uint)((int)s.strstart-s.block_start), 0);
 					s.block_start=(int)s.strstart;
 					flush_pending(s.strm);
@@ -1954,7 +1955,7 @@ namespace Zlib.Extended
 				}
 			}
 			//was FLUSH_BLOCK(s, flush==Z_FINISH);
-			_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+			Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 				(uint)((int)s.strstart-s.block_start), flush==Z_FINISH?1:0);
 			s.block_start=(int)s.strstart;
 			flush_pending(s.strm);
@@ -2034,8 +2035,8 @@ namespace Zlib.Extended
 						s.d_buf[s.last_lit]=dist;
 						s.l_buf[s.last_lit++]=len;
 						dist--;
-						s.dyn_ltree[_length_code[len]+LITERALS+1].Freq++;
-						s.dyn_dtree[(dist<256?_dist_code[dist]:_dist_code[256+(dist>>7)])].Freq++;
+						s.dyn_ltree[Trees._length_code[len]+LITERALS+1].Freq++;
+						s.dyn_dtree[(dist<256? Trees._dist_code[dist]: Trees._dist_code[256+(dist>>7)])].Freq++;
 						bflush=(s.last_lit==s.lit_bufsize-1)?1:0;
 					}
 
@@ -2062,7 +2063,7 @@ namespace Zlib.Extended
 					if(bflush!=0)
 					{
 						//was FLUSH_BLOCK(s, 0);
-						_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+						Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 							(uint)((int)s.strstart-s.block_start), 0);
 						s.block_start=(int)s.strstart;
 						flush_pending(s.strm);
@@ -2089,7 +2090,7 @@ namespace Zlib.Extended
 					if(bflush!=0)
 					{
 						//was FLUSH_BLOCK_ONLY(s, 0);
-						_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+						Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 							(uint)((int)s.strstart-s.block_start), 0);
 						s.block_start=(int)s.strstart;
 						flush_pending(s.strm);
@@ -2125,7 +2126,7 @@ namespace Zlib.Extended
 				s.match_available=0;
 			}
 			//was FLUSH_BLOCK(s, flush==Z_FINISH);
-			_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+			Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 				(uint)((int)s.strstart-s.block_start), flush==Z_FINISH?1:0);
 			s.block_start=(int)s.strstart;
 			flush_pending(s.strm);
@@ -2188,8 +2189,8 @@ namespace Zlib.Extended
 						s.d_buf[s.last_lit]=dist;
 						s.l_buf[s.last_lit++]=len;
 						dist--;
-						s.dyn_ltree[_length_code[len]+LITERALS+1].Freq++;
-						s.dyn_dtree[(dist<256?_dist_code[dist]:_dist_code[256+(dist>>7)])].Freq++;
+						s.dyn_ltree[Trees._length_code[len]+LITERALS+1].Freq++;
+						s.dyn_dtree[(dist<256? Trees._dist_code[dist]: Trees._dist_code[256+(dist>>7)])].Freq++;
 						bflush=(s.last_lit==s.lit_bufsize-1)?true:false;
 					}
 
@@ -2216,7 +2217,7 @@ namespace Zlib.Extended
 				if(bflush)
 				{
 					// FLUSH_BLOCK(s, 0);
-					_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+					Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 						(uint)((int)s.strstart-s.block_start), 0);
 					s.block_start=(int)s.strstart;
 					flush_pending(s.strm);
@@ -2226,7 +2227,7 @@ namespace Zlib.Extended
 			}
 
 			//was FLUSH_BLOCK(s, flush==Z_FINISH);
-			_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+			Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 				(uint)((int)s.strstart-s.block_start), flush==Z_FINISH?1:0);
 			s.block_start=(int)s.strstart;
 			flush_pending(s.strm);
@@ -2275,7 +2276,7 @@ namespace Zlib.Extended
 				if(bflush)
 				{
 					// FLUSH_BLOCK(s, 0);
-					_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+					Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 						(uint)((int)s.strstart-s.block_start), 0);
 					s.block_start=(int)s.strstart;
 					flush_pending(s.strm);
@@ -2285,7 +2286,7 @@ namespace Zlib.Extended
 			}
 
 			//was FLUSH_BLOCK(s, flush==Z_FINISH);
-			_tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
+			Trees._tr_flush_block(s, s.block_start>=0?s.window:null, s.block_start>=0?s.block_start:0,
 				(uint)((int)s.strstart-s.block_start), flush==Z_FINISH?1:0);
 			s.block_start=(int)s.strstart;
 			flush_pending(s.strm);

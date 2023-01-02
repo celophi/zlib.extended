@@ -19,7 +19,7 @@ using System;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Crc32
 	{
 		#region crc_table
 		private static readonly uint[,] crc_table=new uint[,]

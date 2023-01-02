@@ -3,11 +3,9 @@
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
 
-using System;
-
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Adler32
 	{
 		private const uint BASE=65521;	// largest prime smaller than 65536
 		private const uint NMAX=5552;	// NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1

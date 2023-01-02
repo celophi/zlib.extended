@@ -27,11 +27,11 @@
 //          Algorithms, p290.
 //          Addison-Wesley, 1983. ISBN 0-201-06672-6.
 
-using System;
+using static Zlib.Extended.Deflate;
 
 namespace Zlib.Extended
 {
-	public static partial class zlib
+	public static class Trees
 	{
 		// ===========================================================================
 		// Constants
@@ -162,7 +162,7 @@ namespace Zlib.Extended
 			new ct_data(19, 5), new ct_data(11, 5), new ct_data(27, 5), new ct_data( 7, 5), new ct_data(23, 5)
 		};
 
-		private static readonly byte[] _dist_code=new byte[DIST_CODE_LEN]
+		public static readonly byte[] _dist_code=new byte[DIST_CODE_LEN]
 		{
 			 0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  8,
 			 8,  8,  8,  8,  9,  9,  9,  9,  9,  9,  9,  9, 10, 10, 10, 10, 10, 10, 10, 10,
@@ -192,7 +192,7 @@ namespace Zlib.Extended
 			29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29
 		};
 
-		private static readonly byte[] _length_code=new byte[MAX_MATCH-MIN_MATCH+1]
+		public static readonly byte[] _length_code=new byte[Zlib.MAX_MATCH - Zlib.MIN_MATCH + 1]
 		{
 			 0,  1,  2,  3,  4,  5,  6,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12, 12, 12,
 			13, 13, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16,
@@ -223,7 +223,7 @@ namespace Zlib.Extended
 		};
 		#endregion
 
-		class static_tree_desc
+		public class static_tree_desc
 		{
 			public readonly ct_data[] static_tree;	// static tree or NULL
 			public readonly int[] extra_bits;		// extra bits for each code or NULL
@@ -323,7 +323,7 @@ namespace Zlib.Extended
 
 		// ===========================================================================
 		// Initialize the tree data structures for a new zlib stream.
-		static void _tr_init(deflate_state s)
+		public static void _tr_init(deflate_state s)
 		{
 			s.l_desc.dyn_tree=s.dyn_ltree;
 			s.l_desc.stat_desc=static_l_desc;
@@ -773,15 +773,15 @@ namespace Zlib.Extended
 		// buf:			input block
 		// stored_len:	length of input block
 		// last:		one if this is the last block for a file
-		static void _tr_stored_block(deflate_state s, byte[] buf, uint stored_len, int last)
+		public static void _tr_stored_block(deflate_state s, byte[] buf, uint stored_len, int last)
 		{
-			send_bits(s, (STORED_BLOCK<<1)+last, 3);	// send block type
+			send_bits(s, (Zlib.STORED_BLOCK<<1)+last, 3);	// send block type
 			copy_block(s, buf, 0, stored_len, 1);		// with header
 		}
 
-		static void _tr_stored_block(deflate_state s, byte[] buf, int buf_ind, uint stored_len, int last)
+		public static void _tr_stored_block(deflate_state s, byte[] buf, int buf_ind, uint stored_len, int last)
 		{
-			send_bits(s, (STORED_BLOCK<<1)+last, 3);	// send block type
+			send_bits(s, (Zlib.STORED_BLOCK << 1)+last, 3);	// send block type
 			copy_block(s, buf, buf_ind, stored_len, 1);	// with header
 		}
 
@@ -795,9 +795,9 @@ namespace Zlib.Extended
 		// of one. (There are no problems if the previous block is stored or fixed.)
 		// To simplify the code, we assume the worst case of last real code encoded
 		// on one bit only.
-		static void _tr_align(deflate_state s)
+		public static void _tr_align(deflate_state s)
 		{
-			send_bits(s, STATIC_TREES<<1, 3);
+			send_bits(s, Zlib.STATIC_TREES<<1, 3);
 			send_code(s, END_BLOCK, static_ltree);
 
 			bi_flush(s);
@@ -807,7 +807,7 @@ namespace Zlib.Extended
 			// of the EOB plus what we have just sent of the empty static block.
 			if(1+s.last_eob_len+10-s.bi_valid<9)
 			{
-				send_bits(s, STATIC_TREES<<1, 3);
+				send_bits(s, Zlib.STATIC_TREES <<1, 3);
 				send_code(s, END_BLOCK, static_ltree);
 
 				bi_flush(s);
@@ -822,7 +822,7 @@ namespace Zlib.Extended
 		// buf:			input block, or NULL if too old
 		// stored_len:	length of input block
 		// last:		one if this is the last block for a file
-		static void _tr_flush_block(deflate_state s, byte[] buf, int buf_ind, uint stored_len, int last)
+		public static void _tr_flush_block(deflate_state s, byte[] buf, int buf_ind, uint stored_len, int last)
 		{
 			uint opt_lenb, static_lenb;	// opt_len and static_len in bytes
 			int max_blindex=0;			// index of last bit length code of non zero freq
@@ -867,14 +867,14 @@ namespace Zlib.Extended
 				// transform a block into a stored block.
 				_tr_stored_block(s, buf, buf_ind, stored_len, last);
 			}
-			else if(s.strategy==Z_FIXED||static_lenb==opt_lenb)
+			else if(s.strategy== Zlib.Z_FIXED || static_lenb==opt_lenb)
 			{
-				send_bits(s, (STATIC_TREES<<1)+last, 3);
+				send_bits(s, (Zlib.STATIC_TREES <<1)+last, 3);
 				compress_block(s, static_ltree, static_dtree);
 			}
 			else
 			{
-				send_bits(s, (DYN_TREES<<1)+last, 3);
+				send_bits(s, (Zlib.DYN_TREES <<1)+last, 3);
 				send_all_trees(s, s.l_desc.max_code+1, s.d_desc.max_code+1, max_blindex+1);
 				compress_block(s, s.dyn_ltree, s.dyn_dtree);
 			}
