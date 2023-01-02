@@ -6,6 +6,19 @@
     <Nullable>enable</Nullable>
     <Version>1.0.0</Version>
     <Description>zlib port for .NET with support for an extended LZ77 window size.</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/celophi/zlib.extended</PackageProjectUrl>
+    <PackageTags>zlib;net6;port;inflate;deflate;compression</PackageTags>
+    <PackageLicenseFile>License.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="License.txt" Pack="true" PackagePath=""/>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
