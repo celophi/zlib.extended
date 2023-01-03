@@ -3,12 +3,15 @@
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
 
-using System;
+using Zlib.Extended.Enumerations;
 using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
 {
-	public static class Uncompr
+	/// <summary>
+	/// Provides for a default wrapper around managing a stream and performing inflate/deflate.
+	/// </summary>
+    public static class Compressor
 	{
 		//   The following utility functions are implemented on top of the
 		// basic stream-oriented functions. To simplify the interface, some
@@ -29,7 +32,7 @@ namespace Zlib.Extended
 		// enough memory, Z_BUF_ERROR if there was not enough room in the output
 		// buffer, or Z_DATA_ERROR if the input data was corrupted.
 
-		public static int uncompress(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, uint sourceOffset=0, uint destOffset=0)
+		public static ReturnCode uncompress(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, uint sourceOffset=0, uint destOffset=0)
 		{
 			z_stream stream=new z_stream();
 
@@ -37,21 +40,21 @@ namespace Zlib.Extended
 			stream.next_in=sourceOffset;
 			stream.avail_in=sourceLen;
 			// Check for source > 64K on 16-bit machine:
-			if(stream.avail_in!=sourceLen) return Z_BUF_ERROR;
+			if(stream.avail_in!=sourceLen) return ReturnCode.Z_BUF_ERROR;
 
 			stream.out_buf=dest;
 			stream.next_out=(int)destOffset;
 			stream.avail_out=destLen;
-			if(stream.avail_out!=destLen) return Z_BUF_ERROR;
+			if(stream.avail_out!=destLen) return ReturnCode.Z_BUF_ERROR;
 
-			int err=Inflate.inflateInit(stream);
-			if(err!=Z_OK) return err;
+			ReturnCode err =Inflate.inflateInit(stream);
+			if(err!= ReturnCode.Z_OK) return err;
 
 			err= Inflate.inflate(stream, Z_FINISH);
-			if(err!=Z_STREAM_END)
+			if(err!= ReturnCode.Z_STREAM_END)
 			{
 				Inflate.inflateEnd(stream);
-				if(err==Z_NEED_DICT||(err==Z_BUF_ERROR&&stream.avail_in==0)) return Z_DATA_ERROR;
+				if(err== ReturnCode.Z_NEED_DICT ||(err== ReturnCode.Z_BUF_ERROR &&stream.avail_in==0)) return ReturnCode.Z_DATA_ERROR;
 				return err;
 			}
 			destLen=stream.total_out;

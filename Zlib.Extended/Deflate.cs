@@ -47,6 +47,7 @@
 #endregion
 
 using System;
+using Zlib.Extended.Enumerations;
 using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
@@ -441,7 +442,7 @@ namespace Zlib.Extended
 		// with the version assumed by the caller (ZLIB_VERSION).
 		// msg is set to null if there is no error message.  deflateInit does not
 		// perform any compression: this will be done by deflate().
-		public static int deflateInit(z_stream strm, int level)
+		public static ReturnCode deflateInit(z_stream strm, int level)
 		{
 			return deflateInit2(strm, level, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY);
 			// Todo: ignore strm.next_in if we use it as window
@@ -498,9 +499,9 @@ namespace Zlib.Extended
 		// method). msg is set to null if there is no error message.  deflateInit2 does
 		// not perform any compression: this will be done by deflate().
 
-		public static int deflateInit2(z_stream strm, int level, int method, int windowBits, int memLevel, int strategy)
+		public static ReturnCode deflateInit2(z_stream strm, int level, int method, int windowBits, int memLevel, int strategy)
 		{
-			if(strm==null) return Z_STREAM_ERROR;
+			if(strm==null) return ReturnCode.Z_STREAM_ERROR;
 			strm.msg=null;
 
 			if(level==Z_DEFAULT_COMPRESSION) level=6;
@@ -519,7 +520,7 @@ namespace Zlib.Extended
 			}
 
 			if(memLevel<1||memLevel>MAX_MEM_LEVEL||method!=Z_DEFLATED||windowBits<8||windowBits>15||level<0||level>9||
-				strategy<0||strategy>Z_FIXED) return Z_STREAM_ERROR;
+				strategy<0||strategy>Z_FIXED) return ReturnCode.Z_STREAM_ERROR;
 
 			if(windowBits==8) windowBits=9;  // until 256-byte window bug fixed
 
@@ -530,7 +531,7 @@ namespace Zlib.Extended
 			}
 			catch(Exception)
 			{
-				return Z_MEM_ERROR;
+				return ReturnCode.Z_MEM_ERROR;
 			}
 
 			strm.state=s;
@@ -564,9 +565,9 @@ namespace Zlib.Extended
 			catch(Exception)
 			{
 				s.status=FINISH_STATE;
-				strm.msg=Zutil.zError(Z_MEM_ERROR);
+				strm.msg=Zutil.ErrorMessages[ReturnCode.Z_MEM_ERROR];
 				deflateEnd(strm);
-				return Z_MEM_ERROR;
+				return ReturnCode.Z_MEM_ERROR;
 			}
 
 			s.level=level;
@@ -611,21 +612,21 @@ namespace Zlib.Extended
 		// or if the compression method is bsort). deflateSetDictionary does not
 		// perform any compression: this will be done by deflate().
 
-		public static int deflateSetDictionary(z_stream strm, byte[] dictionary, uint dictLength)
+		public static ReturnCode deflateSetDictionary(z_stream strm, byte[] dictionary, uint dictLength)
 		{
 			uint length=dictLength;
 			uint n;
 			uint hash_head=0;
 
-			if(strm==null||strm.state==null||dictionary==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null||dictionary==null) return ReturnCode.Z_STREAM_ERROR;
 
 			deflate_state s=strm.state as deflate_state;
 			if(s==null||s.wrap==2||(s.wrap==1&&s.status!=INIT_STATE))
-				return Z_STREAM_ERROR;
+				return ReturnCode.Z_STREAM_ERROR;
 
 			if(s.wrap!=0) strm.adler= Adler32.adler32(strm.adler, dictionary, dictLength);
 
-			if(length<MIN_MATCH) return Z_OK;
+			if(length<MIN_MATCH) return ReturnCode.Z_OK;
 
 			int dictionary_ind=0;
 			if(length>s.w_size)
@@ -656,7 +657,7 @@ namespace Zlib.Extended
 				s.head[s.ins_h]=(ushort)n;
 			}
 			if(hash_head!=0) hash_head=0;  // to make compiler happy
-			return Z_OK;
+			return ReturnCode.Z_OK;
 		}
 
 		// =========================================================================
@@ -667,9 +668,9 @@ namespace Zlib.Extended
 
 		//    deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
 		// stream state was inconsistent (such as zalloc or state being NULL).
-		public static int deflateReset(z_stream strm)
+		public static ReturnCode deflateReset(z_stream strm)
 		{
-			if(strm==null||strm.state==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null) return ReturnCode.Z_STREAM_ERROR;
 
 			strm.total_in=strm.total_out=0;
 			strm.msg=null;
@@ -687,7 +688,7 @@ namespace Zlib.Extended
 			Trees._tr_init(s);
 			lm_init(s);
 
-			return Z_OK;
+			return ReturnCode.Z_OK;
 		}
 
 		// =========================================================================
@@ -711,13 +712,13 @@ namespace Zlib.Extended
 		//    deflateSetHeader returns Z_OK if success, or Z_STREAM_ERROR if the source
 		// stream state was inconsistent.
 
-		public static int deflateSetHeader(z_stream strm, gz_header head)
+		public static ReturnCode deflateSetHeader(z_stream strm, gz_header head)
 		{
-			if(strm==null||strm.state==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null) return ReturnCode.Z_STREAM_ERROR;
 			deflate_state s=(deflate_state)strm.state;
-			if(s.wrap!=2) return Z_STREAM_ERROR;
+			if(s.wrap!=2) return ReturnCode.Z_STREAM_ERROR;
 			s.gzhead=head;
-			return Z_OK;
+			return ReturnCode.Z_OK;
 		}
 
 		// =========================================================================
@@ -732,13 +733,13 @@ namespace Zlib.Extended
 		//    deflatePrime returns Z_OK if success, or Z_STREAM_ERROR if the source
 		// stream state was inconsistent.
 
-		public static int deflatePrime(z_stream strm, int bits, int value)
+		public static ReturnCode deflatePrime(z_stream strm, int bits, int value)
 		{
-			if(strm==null||strm.state==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null) return ReturnCode.Z_STREAM_ERROR;
 			deflate_state s=(deflate_state)strm.state;
 			s.bi_valid=bits;
 			s.bi_buf=(ushort)(value&((1<<bits)-1));
-			return Z_OK;
+			return ReturnCode.Z_OK;
 		}
 
 		// =========================================================================
@@ -758,16 +759,16 @@ namespace Zlib.Extended
 		// stream state was inconsistent or if a parameter was invalid, Z_BUF_ERROR
 		// if strm.avail_out was zero.
 
-		public static int deflateParams(z_stream strm, int level, int strategy)
+		public static ReturnCode deflateParams(z_stream strm, int level, int strategy)
 		{
-			if(strm==null||strm.state==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null) return ReturnCode.Z_STREAM_ERROR;
 			deflate_state s=(deflate_state)strm.state;
 
 			if(level==Z_DEFAULT_COMPRESSION) level=6;
-			if(level<0||level>9||strategy<0||strategy>Z_FIXED) return Z_STREAM_ERROR;
+			if(level<0||level>9||strategy<0||strategy>Z_FIXED) return ReturnCode.Z_STREAM_ERROR;
 
 			compress_func func=configuration_table[s.level].func;
-			int err=Z_OK;
+			ReturnCode err= ReturnCode.Z_OK;
 
 			if((strategy!=s.strategy||func!=configuration_table[level].func)&&strm.total_in!=0) // Flush the last buffer:
 				err=deflate(strm, Z_BLOCK);
@@ -796,15 +797,15 @@ namespace Zlib.Extended
 		//   deflateTune() can be called after deflateInit() or deflateInit2(), and
 		// returns Z_OK on success, or Z_STREAM_ERROR for an invalid deflate stream.
 
-		public static int deflateTune(z_stream strm, uint good_length, uint max_lazy, int nice_length, uint max_chain)
+		public static ReturnCode deflateTune(z_stream strm, uint good_length, uint max_lazy, int nice_length, uint max_chain)
 		{
-			if(strm==null||strm.state==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null) return ReturnCode.Z_STREAM_ERROR;
 			deflate_state s=(deflate_state)strm.state;
 			s.good_match=good_length;
 			s.max_lazy_match=max_lazy;
 			s.nice_match=nice_length;
 			s.max_chain_length=max_chain;
-			return Z_OK;
+			return ReturnCode.Z_OK;
 		}
 
 		// =========================================================================
@@ -1001,23 +1002,23 @@ namespace Zlib.Extended
 		// fatal, and deflate() can be called again with more input and more output
 		// space to continue compressing.
 
-		public static int deflate(z_stream strm, int flush)
+		public static ReturnCode deflate(z_stream strm, int flush)
 		{
 			int old_flush; // value of flush param for previous deflate call
 
-			if(strm==null||strm.state==null||flush>Z_BLOCK||flush<0) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null||flush>Z_BLOCK||flush<0) return ReturnCode.Z_STREAM_ERROR;
 			deflate_state s=(deflate_state)strm.state;
 
 			if(strm.out_buf==null||(strm.in_buf==null&&strm.avail_in!=0)||(s.status==FINISH_STATE&&flush!=Z_FINISH))
 			{
-				strm.msg= Zutil.zError(Z_STREAM_ERROR);
-				return Z_STREAM_ERROR;
+				strm.msg= Zutil.ErrorMessages[ReturnCode.Z_STREAM_ERROR];
+				return ReturnCode.Z_STREAM_ERROR;
 			}
 
 			if(strm.avail_out==0)
 			{
-				strm.msg= Zutil.zError(Z_BUF_ERROR);
-				return Z_BUF_ERROR;
+				strm.msg= Zutil.ErrorMessages[ReturnCode.Z_BUF_ERROR];
+				return ReturnCode.Z_BUF_ERROR;
 			}
 
 			s.strm=strm; // just in case
@@ -1207,7 +1208,7 @@ namespace Zlib.Extended
 					// but this is not an error situation so make sure we
 					// return OK instead of BUF_ERROR at next call of deflate:
 					s.last_flush=-1;
-					return Z_OK;
+					return ReturnCode.Z_OK;
 				}
 
 				// Make sure there is something to do and avoid duplicate consecutive
@@ -1216,15 +1217,15 @@ namespace Zlib.Extended
 			}
 			else if(strm.avail_in==0&&flush<=old_flush&&flush!=Z_FINISH)
 			{
-				strm.msg= Zutil.zError(Z_BUF_ERROR);
-				return Z_BUF_ERROR;
+				strm.msg= Zutil.ErrorMessages[ReturnCode.Z_BUF_ERROR];
+				return ReturnCode.Z_BUF_ERROR;
 			}
 
 			// User must not provide more input after the first FINISH:
 			if(s.status==FINISH_STATE&&strm.avail_in!=0)
 			{
-				strm.msg= Zutil.zError(Z_BUF_ERROR);
-				return Z_BUF_ERROR;
+				strm.msg= Zutil.ErrorMessages[ReturnCode.Z_BUF_ERROR];
+				return ReturnCode.Z_BUF_ERROR;
 			}
 
 			// Start a new block or continue the current one.
@@ -1236,7 +1237,7 @@ namespace Zlib.Extended
 				if(bstate==block_state.need_more||bstate==block_state.finish_started)
 				{
 					if(strm.avail_out==0) s.last_flush=-1; // avoid BUF_ERROR next call, see above
-					return Z_OK;
+					return ReturnCode.Z_OK;
 					// If flush != Z_NO_FLUSH && avail_out == 0, the next call
 					// of deflate should use the same flush parameter to make sure
 					// that the flush is complete. So we don't have to output an
@@ -1270,14 +1271,14 @@ namespace Zlib.Extended
 					if(strm.avail_out==0)
 					{
 						s.last_flush=-1; // avoid BUF_ERROR at next call, see above
-						return Z_OK;
+						return ReturnCode.Z_OK;
 					}
 				}
 			}
 			//Assert(strm.avail_out>0, "bug2");
 
-			if(flush!=Z_FINISH) return Z_OK;
-			if(s.wrap<=0) return Z_STREAM_END;
+			if(flush!=Z_FINISH) return ReturnCode.Z_OK;
+			if(s.wrap<=0) return ReturnCode.Z_STREAM_END;
 
 			// Write the trailer
 			if(s.wrap==2)
@@ -1301,7 +1302,7 @@ namespace Zlib.Extended
 			// If avail_out is zero, the application will call deflate again
 			// to flush the rest.
 			if(s.wrap>0) s.wrap=-s.wrap; // write the trailer only once!
-			return s.pending!=0?Z_OK:Z_STREAM_END;
+			return s.pending!=0? ReturnCode.Z_OK : ReturnCode.Z_STREAM_END;
 		}
 		#endregion
 
@@ -1316,14 +1317,14 @@ namespace Zlib.Extended
 		// msg may be set but then points to a static string (which must not be
 		// deallocated).
 
-		public static int deflateEnd(z_stream strm)
+		public static ReturnCode deflateEnd(z_stream strm)
 		{
-			if(strm==null||strm.state==null) return Z_STREAM_ERROR;
+			if(strm==null||strm.state==null) return ReturnCode.Z_STREAM_ERROR;
 
 			deflate_state s=(deflate_state)strm.state;
 			int status=s.status;
 			if(status!=INIT_STATE&& status!=EXTRA_STATE&& status!=NAME_STATE&& status!=COMMENT_STATE&&
-				status!=HCRC_STATE&& status!=BUSY_STATE&&status!=FINISH_STATE) return Z_STREAM_ERROR;
+				status!=HCRC_STATE&& status!=BUSY_STATE&&status!=FINISH_STATE) return ReturnCode.Z_STREAM_ERROR;
 
 			// Deallocate in reverse order of allocations:
 			//if(s.pending_buf!=null) free(s.pending_buf);
@@ -1338,7 +1339,7 @@ namespace Zlib.Extended
 			//free(strm.state);
 			strm.state=s=null;
 
-			return status==BUSY_STATE?Z_DATA_ERROR:Z_OK;
+			return status==BUSY_STATE? ReturnCode.Z_DATA_ERROR : ReturnCode.Z_OK;
 		}
 
 		// =========================================================================
@@ -1357,9 +1358,9 @@ namespace Zlib.Extended
 		// destination.
 
 		// Copy the source state to the destination state.
-		public static int deflateCopy(z_stream dest, z_stream source)
+		public static ReturnCode deflateCopy(z_stream dest, z_stream source)
 		{
-			if(source==null||dest==null||source.state==null) return Z_STREAM_ERROR;
+			if(source==null||dest==null||source.state==null) return ReturnCode.Z_STREAM_ERROR;
 
 			deflate_state ss=(deflate_state)source.state;
 
@@ -1373,7 +1374,7 @@ namespace Zlib.Extended
 			}
 			catch(Exception)
 			{
-				return Z_MEM_ERROR;
+				return ReturnCode.Z_MEM_ERROR;
 			}
 			dest.state=ds;
 			//(done above) memcpy(ds, ss, sizeof(deflate_state));
@@ -1391,7 +1392,7 @@ namespace Zlib.Extended
 			catch(Exception)
 			{
 				deflateEnd(dest);
-				return Z_MEM_ERROR;
+				return ReturnCode.Z_MEM_ERROR;
 			}
 
 			//was memcpy(ds.window, ss.window, ds.w_size*2*sizeof(byte));
@@ -1412,7 +1413,7 @@ namespace Zlib.Extended
 			ds.d_desc.dyn_tree=ds.dyn_dtree;
 			ds.bl_desc.dyn_tree=ds.bl_tree;
 
-			return Z_OK;
+			return ReturnCode.Z_OK;
 		}
 
 		// ===========================================================================

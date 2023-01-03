@@ -5,6 +5,7 @@
 // This file has been modified and does not represent the original software.
 
 using System;
+using Zlib.Extended.Enumerations;
 
 namespace Zlib.Extended
 {
@@ -117,7 +118,7 @@ namespace Zlib.Extended
 
 		// ushort* lens -> ushort[] lens + int lens_ind
 		// code** table -> code[] table + ref int table_ind
-		public static int inflate_table(codetype type, ushort[] lens, int lens_ind, uint codes, code[] table, ref int table_ind, ref uint bits, ushort[] work)
+		public static ReturnCode inflate_table(codetype type, ushort[] lens, int lens_ind, uint codes, code[] table, ref int table_ind, ref uint bits, ushort[] work)
 		{
 			uint len;				// a code's length in bits
 			uint sym;				// index of code symbols
@@ -198,9 +199,9 @@ namespace Zlib.Extended
 			{
 				left<<=1;
 				left-=count[len];
-				if(left<0) return -1; // over-subscribed
+				if(left<0) return ReturnCode.Z_ERRNO; // over-subscribed
 			}
-			if(left>0&&(type==codetype.CODES||max!=1)) return -1; // incomplete set
+			if(left>0&&(type==codetype.CODES||max!=1)) return ReturnCode.Z_ERRNO; // incomplete set
 
 			// generate offsets into symbol table for each length for sorting
 			offs[1]=0;
@@ -274,7 +275,7 @@ namespace Zlib.Extended
 			mask=used-1;		// mask for comparing low
 
 			// check available table space
-			if((type==codetype.LENS&&used>=ENOUGH_LENS)||(type==codetype.DISTS&&used>=ENOUGH_DISTS)) return 1;
+			if((type==codetype.LENS&&used>=ENOUGH_LENS)||(type==codetype.DISTS&&used>=ENOUGH_DISTS)) return ReturnCode.Z_STREAM_END;
 
 			// process all codes and make table entries
 			for(; ; )
@@ -348,7 +349,7 @@ namespace Zlib.Extended
 
 					// check for enough space
 					used+=1U<<(int)curr;
-					if((type==codetype.LENS&&used>=ENOUGH_LENS)||(type==codetype.DISTS&&used>=ENOUGH_DISTS)) return 1;
+					if((type==codetype.LENS&&used>=ENOUGH_LENS)||(type==codetype.DISTS&&used>=ENOUGH_DISTS)) return ReturnCode.Z_STREAM_END;
 
 					// point entry in root table to sub-table
 					low=huff&mask;

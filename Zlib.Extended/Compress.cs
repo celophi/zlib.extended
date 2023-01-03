@@ -3,6 +3,7 @@
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
 
+using Zlib.Extended.Enumerations;
 using static Zlib.Extended.Zlib;
 
 namespace Zlib.Extended
@@ -26,7 +27,7 @@ namespace Zlib.Extended
 		// memory, Z_BUF_ERROR if there was not enough room in the output buffer,
 		// Z_STREAM_ERROR if the level parameter is invalid.
 		
-		public static int Compress2(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, int level)
+		public static ReturnCode Compress2(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, int level)
 		{
             z_stream stream = new()
             {
@@ -37,16 +38,16 @@ namespace Zlib.Extended
                 out_buf = dest,
                 avail_out = destLen
             };
-            if (stream.avail_out!=destLen) return Z_BUF_ERROR;
+            if (stream.avail_out!=destLen) return ReturnCode.Z_BUF_ERROR;
 
-			int err= Deflate.deflateInit(stream, level);
-			if(err!=Z_OK) return err;
+			var err= Deflate.deflateInit(stream, level);
+			if(err!= ReturnCode.Z_OK) return err;
 
 			err=Deflate.deflate(stream, Z_FINISH);
-			if(err!=Z_STREAM_END)
+			if(err!= ReturnCode.Z_STREAM_END)
 			{
 				Deflate.deflateEnd(stream);
-				return err==Z_OK?Z_BUF_ERROR:err;
+				return err== ReturnCode.Z_OK ? ReturnCode.Z_BUF_ERROR : err;
 			}
 			destLen=stream.total_out;
 
@@ -67,7 +68,7 @@ namespace Zlib.Extended
 		// enough memory, Z_BUF_ERROR if there was not enough room in the output
 		// buffer.
 
-		public static int compress(byte[] dest, ref uint destLen, byte[] source, uint sourceLen)
+		public static ReturnCode compress(byte[] dest, ref uint destLen, byte[] source, uint sourceLen)
 		{
 			return Compress2(dest, ref destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 		}

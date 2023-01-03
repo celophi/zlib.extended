@@ -136,18 +136,6 @@ namespace Zlib.Extended
 		public const int Z_BLOCK=5;
 		public const int Z_TREES=6;
 
-		// Return codes for the compression/decompression functions. Negative
-		// values are errors, positive values are used for special but normal events.
-		public const int Z_OK=0;
-		public const int Z_STREAM_END=1;
-		public const int Z_NEED_DICT=2;
-		public const int Z_ERRNO=-1;
-		public const int Z_STREAM_ERROR=-2;
-		public const int Z_DATA_ERROR=-3;
-		public const int Z_MEM_ERROR=-4;
-		public const int Z_BUF_ERROR=-5;
-		public const int Z_VERSION_ERROR=-6;
-
 		// compression levels
 		public const int Z_NO_COMPRESSION=0;
 		public const int Z_BEST_SPEED=1;
