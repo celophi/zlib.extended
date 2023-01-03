@@ -1,8 +1,3 @@
-// uncompr.cs -- decompress a memory buffer
-// Copyright (C) 1995-2003, 2010 Jean-loup Gailly.
-// Copyright (C) 2007-2011 by the Authors
-// For conditions of distribution and use, see copyright notice in License.txt
-
 using Zlib.Extended.Enumerations;
 using static Zlib.Extended.Zlib;
 
@@ -13,54 +8,24 @@ namespace Zlib.Extended
 	/// </summary>
     public static class Compressor
 	{
-		//   The following utility functions are implemented on top of the
-		// basic stream-oriented functions. To simplify the interface, some
-		// default options are assumed (compression level and memory usage,
-		// standard memory allocation functions). The source code of these
-		// utility functions can easily be modified if you need special options.
+		/// <summary>
+		/// Inflates compressed input.
+		/// </summary>
+		/// <param name="input">Byte array of compressed data.</param>
+		/// <param name="output">Empty array to place decompressed data.</param>
+		/// <returns></returns>
+		public static ReturnCode Decompress(byte[] input, ref byte[] output)
+        {
+            var stream = new z_stream
+            {
+                in_buf = input,
+                out_buf = output,
+                avail_in = (uint)input.Length,
+                avail_out = (uint)output.Length
+            };
 
-		// ===========================================================================
-		//   Decompresses the source buffer into the destination buffer.  sourceLen is
-		// the byte length of the source buffer. Upon entry, destLen is the total
-		// size of the destination buffer, which must be large enough to hold the
-		// entire uncompressed data. (The size of the uncompressed data must have
-		// been saved previously by the compressor and transmitted to the decompressor
-		// by some mechanism outside the scope of this compression library.)
-		// Upon exit, destLen is the actual size of the compressed buffer.
-		//
-		//   uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
-		// enough memory, Z_BUF_ERROR if there was not enough room in the output
-		// buffer, or Z_DATA_ERROR if the input data was corrupted.
-
-		public static ReturnCode uncompress(byte[] dest, ref uint destLen, byte[] source, uint sourceLen, uint sourceOffset=0, uint destOffset=0)
-		{
-			z_stream stream=new z_stream();
-
-			stream.in_buf=source;
-			stream.next_in=sourceOffset;
-			stream.avail_in=sourceLen;
-			// Check for source > 64K on 16-bit machine:
-			if(stream.avail_in!=sourceLen) return ReturnCode.Z_BUF_ERROR;
-
-			stream.out_buf=dest;
-			stream.next_out=(int)destOffset;
-			stream.avail_out=destLen;
-			if(stream.avail_out!=destLen) return ReturnCode.Z_BUF_ERROR;
-
-			ReturnCode err =Inflate.inflateInit(stream);
-			if(err!= ReturnCode.Z_OK) return err;
-
-			err= Inflate.inflate(stream, Z_FINISH);
-			if(err!= ReturnCode.Z_STREAM_END)
-			{
-				Inflate.inflateEnd(stream);
-				if(err== ReturnCode.Z_NEED_DICT ||(err== ReturnCode.Z_BUF_ERROR &&stream.avail_in==0)) return ReturnCode.Z_DATA_ERROR;
-				return err;
-			}
-			destLen=stream.total_out;
-
-			err= Inflate.inflateEnd(stream);
-			return err;
-		}
+            Inflate.inflateInit(stream);
+			return Inflate.inflate(stream, FlushValue.Z_FINISH);
+        }
 	}
 }

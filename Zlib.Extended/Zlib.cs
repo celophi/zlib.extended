@@ -2,6 +2,7 @@
 // Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
+// This file has been modified and does not represent the original software.
 
 namespace Zlib.Extended
 {
@@ -126,15 +127,6 @@ namespace Zlib.Extended
 		// a single step).
 
 		// constants
-
-		// Allowed flush values; see deflate() and inflate() below for details
-		public const int Z_NO_FLUSH=0;
-		public const int Z_PARTIAL_FLUSH=1;
-		public const int Z_SYNC_FLUSH=2;
-		public const int Z_FULL_FLUSH=3;
-		public const int Z_FINISH=4;
-		public const int Z_BLOCK=5;
-		public const int Z_TREES=6;
 
 		// compression levels
 		public const int Z_NO_COMPRESSION=0;

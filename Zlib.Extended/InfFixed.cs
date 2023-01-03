@@ -1,8 +1,8 @@
 ﻿// inffixed.cs -- table for decoding fixed codes
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
-// This file has been modified and does not represent the original software.
 // Based on the automatically by makefixed() generated inffixed.h.
+// This file has been modified and does not represent the original software.
 
 using System;
 using static Zlib.Extended.Inftrees;

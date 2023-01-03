@@ -2,6 +2,7 @@
 // Copyright (C) 1995-2005 Jean-loup Gailly.
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
+// This file has been modified and does not represent the original software.
 
 using Zlib.Extended.Enumerations;
 using static Zlib.Extended.Zlib;
@@ -43,7 +44,7 @@ namespace Zlib.Extended
 			var err= Deflate.deflateInit(stream, level);
 			if(err!= ReturnCode.Z_OK) return err;
 
-			err=Deflate.deflate(stream, Z_FINISH);
+			err=Deflate.deflate(stream, FlushValue.Z_FINISH);
 			if(err!= ReturnCode.Z_STREAM_END)
 			{
 				Deflate.deflateEnd(stream);

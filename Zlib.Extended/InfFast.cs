@@ -2,6 +2,7 @@
 // Copyright (C) 1995-2008,2010 Mark Adler
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
+// This file has been modified and does not represent the original software.
 
 using static Zlib.Extended.Inflate;
 using static Zlib.Extended.Inftrees;

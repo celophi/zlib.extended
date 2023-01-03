@@ -13,6 +13,8 @@
 // the dynamic generation of the CRC table or a pregenerated source code version
 // of the table. This port uses the pregenerated source code version.
 
+// This file has been modified and does not represent the original software.
+
 #define SAFE_VERSION
 
 using System;

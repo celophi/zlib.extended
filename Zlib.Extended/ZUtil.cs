@@ -2,6 +2,7 @@
 // Copyright (C) 1995-2005, 2010 Jean-loup Gailly.
 // Copyright (C) 2007-2011 by the Authors
 // For conditions of distribution and use, see copyright notice in License.txt
+// This file has been modified and does not represent the original software.
 
 using System;
 using System.Collections.Generic;

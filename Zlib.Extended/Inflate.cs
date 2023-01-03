@@ -689,7 +689,7 @@ namespace Zlib.Extended
         // call inflateSync() to look for a good compression block if a partial recovery
         // of the data is desired.
 
-        public static ReturnCode inflate(z_stream strm, int flush)
+        public static ReturnCode inflate(z_stream strm, FlushValue flush)
         {
             inflate_state state;
             uint next;              // next input
@@ -1069,7 +1069,7 @@ namespace Zlib.Extended
                         state.mode = inflate_mode.TYPE;
                         break; // no fall through
                     case inflate_mode.TYPE:
-                        if (flush == Z_BLOCK || flush == Z_TREES) goto inf_leave;
+                        if (flush == FlushValue.Z_BLOCK || flush == FlushValue.Z_TREES) goto inf_leave;
 
                         state.mode = inflate_mode.TYPEDO;
                         break; // no fall through
@@ -1112,7 +1112,7 @@ namespace Zlib.Extended
                                 fixedtables(state);
                                 //Tracev((stderr, "inflate:     fixed codes block%s\n", state.last ? " (last)" : ""));
                                 state.mode = inflate_mode.LEN_;              // decode codes
-                                if (flush == Z_TREES)
+                                if (flush == FlushValue.Z_TREES)
                                 {
                                     //was DROPBITS(2);
                                     hold >>= 2;
@@ -1163,7 +1163,7 @@ namespace Zlib.Extended
                         hold = bits = 0;
 
                         state.mode = inflate_mode.COPY_;
-                        if (flush == Z_TREES) goto inf_leave;
+                        if (flush == FlushValue.Z_TREES) goto inf_leave;
                         break; // no fall through
                     case inflate_mode.COPY_:
                         state.mode = inflate_mode.COPY;
@@ -1448,7 +1448,7 @@ namespace Zlib.Extended
 
                         //Tracev((stderr, "inflate:       codes ok\n"));
                         state.mode = inflate_mode.LEN_;
-                        if (flush == Z_TREES) goto inf_leave;
+                        if (flush == FlushValue.Z_TREES) goto inf_leave;
                         break; // no fall through
                     case inflate_mode.LEN_:
                         state.mode = inflate_mode.LEN;
@@ -1815,7 +1815,7 @@ namespace Zlib.Extended
 
             //??? strm.data_type=state.bits+(state.last!=0?64:0)+(state.mode==inflate_mode.TYPE?128:0);
 
-            if (((_in == 0 && _out == 0) || flush == Z_FINISH) && ret == ReturnCode.Z_OK) ret = ReturnCode.Z_BUF_ERROR;
+            if (((_in == 0 && _out == 0) || flush == FlushValue.Z_FINISH) && ret == ReturnCode.Z_OK) ret = ReturnCode.Z_BUF_ERROR;
 
             return ret;
         }
